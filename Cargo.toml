@@ -3,5 +3,8 @@ name = "beyonce-brawls"
 version = "0.1.0"
 authors = ["lislis <mail@lislis.de>"]
 
+[features]
+cargo-resource-root = []
+
 [dependencies]
 ggez = "0.3"
