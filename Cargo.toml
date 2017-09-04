@@ -1,0 +1,7 @@
+[package]
+name = "beyonce-brawls"
+version = "0.1.0"
+authors = ["lislis <mail@lislis.de>"]
+
+[dependencies]
+ggez = "0.3"
