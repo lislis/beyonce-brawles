@@ -12,6 +12,7 @@ struct MainState {
     pos_y: f32,
     image: graphics::Image,
     image2: graphics::Image,
+    hitarea: graphics::Image,
     text: graphics::Text,
     holding: f32
 }
@@ -20,6 +21,7 @@ impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
         let image = graphics::Image::new(ctx, "/b1.png").unwrap();
         let image2 = graphics::Image::new(ctx, "/b2.png").unwrap();
+        let hitarea = graphics::Image::new(ctx, "/dangerzone.png").unwrap();
         let font = graphics::Font::new(ctx, "/leaguespartan-bold.ttf", 28)?;
         let text = graphics::Text::new(ctx, "Beyonce Brawls", &font)?;
 
@@ -28,6 +30,7 @@ impl MainState {
             pos_y: 0.0,
             image: image,
             image2: image2,
+            hitarea: hitarea,
             text: text,
             holding: 0.0
         };
@@ -39,6 +42,12 @@ impl MainState {
             self.holding += 0.1;
             println!("Holding {}", self.holding);
 
+            if self.holding > 8.0 {
+                println!("Holding too long, resetting");
+                // some sort of punishing sleep?
+                // otherwise pressing event fires right away again
+                self.unhold();
+            }
         } else {
             self.holding = 0.1;
         }
@@ -64,8 +73,10 @@ impl event::EventHandler for MainState {
         graphics::draw(ctx, &self.text, Point { x: self.text.width() as f32, y: self.text.height() as f32 }, 0.0)?;
 
         if self.holding > 4.0 { // magic number
+            let dest_hitarea = graphics::Point::new(self.pos_x, self.pos_y + 32.0);
             graphics::draw(ctx, &self.text, Point { x: 200.0,  y: 500.0}, 0.0)?;
             graphics::draw(ctx, &self.image2, dest_point, 0.0)?;
+            graphics::draw(ctx, &self.hitarea, dest_hitarea, 0.0)?;
         } else if self.holding > 0.0 {
             graphics::draw(ctx, &self.image2, dest_point, 0.0)?;
         } else {
