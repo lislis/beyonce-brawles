@@ -14,7 +14,10 @@ struct MainState {
     image2: graphics::Image,
     hitarea: graphics::Image,
     text: graphics::Text,
-    holding: f32
+    holding: f32,
+    t_x: f32,
+    t_y: f32,
+    t_image: graphics::Image
 }
 
 impl MainState {
@@ -25,6 +28,8 @@ impl MainState {
         let font = graphics::Font::new(ctx, "/leaguespartan-bold.ttf", 28)?;
         let text = graphics::Text::new(ctx, "Beyonce Brawls", &font)?;
 
+        let thing_image = graphics::Image::new(ctx, "/thing.png").unwrap();
+
         let s = MainState {
             pos_x: 400.0,
             pos_y: 0.0,
@@ -32,7 +37,10 @@ impl MainState {
             image2: image2,
             hitarea: hitarea,
             text: text,
-            holding: 0.0
+            holding: 0.0,
+            t_x: 330.0,
+            t_y: 300.0,
+            t_image: thing_image
         };
         Ok(s)
     }
@@ -42,7 +50,7 @@ impl MainState {
             self.holding += 0.1;
             println!("Holding {}", self.holding);
 
-            if self.holding > 8.0 {
+            if self.holding > 8.0 { // magic number
                 println!("Holding too long, resetting");
                 // some sort of punishing sleep?
                 // otherwise pressing event fires right away again
@@ -56,6 +64,17 @@ impl MainState {
         self.holding = 0.0;
         true
     }
+    pub fn collision(&mut self) {
+        if self.holding > 4.0 { //magic number
+            if self.pos_x < self.t_x + 128.0 &&
+                self.pos_x + 64.0 > self.t_x &&
+                self.pos_y < self.t_y + 32.0 &&
+                self.pos_y + 64.0 > self.t_y {
+                    println!("HIT EM");
+                }
+        }
+
+    }
 }
 
 impl event::EventHandler for MainState {
@@ -63,6 +82,7 @@ impl event::EventHandler for MainState {
         if self.holding == 0.0 {
             self.pos_y = self.pos_y % 400.0 + 1.0;
         }
+        self.collision();
         Ok(())
     }
 
@@ -71,6 +91,8 @@ impl event::EventHandler for MainState {
 
         let dest_point = graphics::Point::new(self.pos_x, self.pos_y);
         graphics::draw(ctx, &self.text, Point { x: self.text.width() as f32, y: self.text.height() as f32 }, 0.0)?;
+
+        graphics::draw(ctx, &self.t_image, Point { x: self.t_x, y: self.t_y }, 0.0)?;
 
         if self.holding > 4.0 { // magic number
             let dest_hitarea = graphics::Point::new(self.pos_x, self.pos_y + 32.0);
