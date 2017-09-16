@@ -12,32 +12,50 @@ use ggez::graphics::{Color, DrawMode, Point};
 use std::time::Duration;
 
 enum SmashableType {
-    Car { w: f32, h: f32 },
-    Hydrant { w: f32, h: f32 },
-    CCTV { w: f32, h: f32 }
+    Car { w: f32, h: f32, s: graphics::Image },
+    Hydrant { w: f32, h: f32,  s: graphics::Image },
+    CCTV { w: f32, h: f32, s: graphics::Image  }
 }
 
 struct Smashable {
     x: f32,
     y: f32,
-    t: SmashableType
+    t: i32
 }
 
 impl Smashable {
-    fn new() -> Smashable {
+    fn new(ctx: &mut Context) -> Smashable {
         let mut rng = rand::thread_rng();
-        let y = rng.gen::<f32>() * 100.0 + rng.gen::<f32>() * 100.0;
-        let x : f32;
+        let y = rng.gen::<f32>() * 100.0 + rng.gen::<f32>() * 500.0;
+        let x:f32;
         let ltr = rng.gen();
         match ltr {
-            true => { x = 250.0 } // magic number
-            false => { x = 480.0 } //magic number
+            true => { x = 320.0 } // magic number
+            false => { x = 470.0 } //magic number
         }
-        let t = SmashableType::Car { w: 32.0, h: 64.0 };
+        let t:SmashableType;
+        let t = rand::thread_rng().gen_range(1, 4);
+
         Smashable {
             x: x,
             y: y,
             t: t
+        }
+    }
+
+    pub fn draw(&mut self, ctx: &mut Context) {
+        let point = graphics::Point::new(self.x, self.y);
+        let car = graphics::Image::new(ctx, "/car.png").unwrap();
+        match self.t {
+            2 => {
+                graphics::draw(ctx, &car, point, 0.0);
+            }
+            3 => {
+                graphics::draw(ctx, &car, point, 0.0);
+            }
+            _ => {
+                graphics::draw(ctx, &car, point, 0.0);
+            }
         }
     }
 }
@@ -127,9 +145,10 @@ impl MainState {
         let thing_image = graphics::Image::new(ctx, "/thing.png").unwrap();
 
         let mut smashables = vec![];
-        smashables.push(Smashable::new());
-        smashables.push(Smashable::new());
-        smashables.push(Smashable::new());
+
+        for x in 0..20 {
+            smashables.push(Smashable::new(ctx));
+        }
 
         let s = MainState {
             player: Player::new(ctx),
@@ -167,8 +186,8 @@ impl event::EventHandler for MainState {
 
         graphics::draw(ctx, &self.text, Point { x: self.text.width() as f32, y: self.text.height() as f32 }, 0.0)?;
 
-        for s in self.smashables.iter() {
-            graphics::draw(ctx, &self.t_image, Point { x: s.x, y: s.y }, 0.0)?;
+        for s in self.smashables.iter_mut() {
+            s.draw(ctx);
         }
 
         self.player.draw(ctx);
