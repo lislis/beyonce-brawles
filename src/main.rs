@@ -1,4 +1,8 @@
 extern crate ggez;
+extern crate rand;
+
+use rand::Rng;
+
 use ggez::conf;
 use ggez::event;
 use ggez::event::*;
@@ -7,6 +11,36 @@ use ggez::graphics;
 use ggez::graphics::{Color, DrawMode, Point};
 use std::time::Duration;
 
+enum SmashableType {
+    Car { w: f32, h: f32 },
+    Hydrant { w: f32, h: f32 },
+    CCTV { w: f32, h: f32 }
+}
+
+struct Smashable {
+    x: f32,
+    y: f32,
+    t: SmashableType
+}
+
+impl Smashable {
+    fn new() -> Smashable {
+        let mut rng = rand::thread_rng();
+        let x = rng.gen::<f32>() * 20.0;
+        let y : f32;
+        let ltr = rng.gen();
+        match ltr {
+            true => { y = 200.0 } // magic number
+            false => { y = 300.0 } //magic number
+        }
+        let t = SmashableType::Car { w: 32.0, h: 64.0 };
+        Smashable {
+            x: x,
+            y: y,
+            t: t
+        }
+    }
+}
 
 struct Player {
     x: f32,
@@ -80,6 +114,7 @@ impl Player {
 struct MainState {
     player: Player,
     text: graphics::Text,
+    smashables: Vec<Smashable>,
     t_x: f32,
     t_y: f32,
     t_image: graphics::Image
@@ -94,11 +129,21 @@ impl MainState {
         let s = MainState {
             player: Player::new(ctx),
             text: text,
+            smashables: vec![],
             t_x: 330.0,
             t_y: 300.0,
             t_image: thing_image
         };
         Ok(s)
+    }
+
+    fn generateSmashables(&mut self) -> bool {
+        let mut rng = rand::thread_rng();
+        //let speed = rng.gen::<f64>() + 1.0;
+        //let ltr = rng.gen();
+
+        self.smashables.push(Smashable::new());
+        true
     }
 
     pub fn collision(&mut self) {
@@ -137,12 +182,13 @@ impl event::EventHandler for MainState {
     }
 
     fn key_down_event(&mut self, keycode: Keycode, keymod: Mod, repeat: bool) {
-        println!(
+/*        println!(
             "Key pressed: {:?}, modifier {:?}, repeat: {}",
             keycode,
             keymod,
             repeat
         );
+*/
         match keycode {
             Keycode::Space => {
                 self.player.hold();
@@ -151,13 +197,13 @@ impl event::EventHandler for MainState {
         }
     }
     fn key_up_event(&mut self, keycode: Keycode, keymod: Mod, repeat: bool) {
-        println!(
+/*        println!(
             "Key released: {:?}, modifier {:?}, repeat: {}",
             keycode,
             keymod,
             repeat
         );
-
+*/
         match keycode {
             Keycode::Space => {
                 self.player.unhold();
