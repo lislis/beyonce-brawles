@@ -46,15 +46,17 @@ impl Smashable {
     pub fn draw(&mut self, ctx: &mut Context) {
         let point = graphics::Point::new(self.x, self.y);
         let car = graphics::Image::new(ctx, "/car.png").unwrap();
+        let cctv = graphics::Image::new(ctx, "/cctv.png").unwrap();
+        let hydrant = graphics::Image::new(ctx, "/hydrant.png").unwrap();
         match self.t {
             2 => {
                 graphics::draw(ctx, &car, point, 0.0);
             }
             3 => {
-                graphics::draw(ctx, &car, point, 0.0);
+                graphics::draw(ctx, &cctv, point, 0.0);
             }
             _ => {
-                graphics::draw(ctx, &car, point, 0.0);
+                graphics::draw(ctx, &hydrant, point, 0.0);
             }
         }
     }
@@ -133,9 +135,6 @@ struct MainState {
     player: Player,
     text: graphics::Text,
     smashables: Vec<Smashable>,
-    t_x: f32,
-    t_y: f32,
-    t_image: graphics::Image
 }
 
 impl MainState {
@@ -153,22 +152,19 @@ impl MainState {
         let s = MainState {
             player: Player::new(ctx),
             text: text,
-            smashables: smashables,
-            t_x: 330.0,
-            t_y: 300.0,
-            t_image: thing_image
+            smashables: smashables
         };
         Ok(s)
     }
 
     pub fn collision(&mut self) {
         if self.player.holding > 4.0 { //magic number
-            if self.player.x < self.t_x + 128.0 &&
+            /*if self.player.x < self.t_x + 128.0 &&
                 self.player.x + self.player.w > self.t_x &&
                 self.player.y < self.t_y + 32.0 &&
                 self.player.y + self.player.h > self.t_y {
                     println!("HIT EM");
-                }
+                }*/
         }
 
     }
