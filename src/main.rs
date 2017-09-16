@@ -26,12 +26,12 @@ struct Smashable {
 impl Smashable {
     fn new() -> Smashable {
         let mut rng = rand::thread_rng();
-        let x = rng.gen::<f32>() * 20.0;
-        let y : f32;
+        let y = rng.gen::<f32>() * 100.0 + rng.gen::<f32>() * 100.0;
+        let x : f32;
         let ltr = rng.gen();
         match ltr {
-            true => { y = 200.0 } // magic number
-            false => { y = 300.0 } //magic number
+            true => { x = 250.0 } // magic number
+            false => { x = 480.0 } //magic number
         }
         let t = SmashableType::Car { w: 32.0, h: 64.0 };
         Smashable {
@@ -126,24 +126,20 @@ impl MainState {
         let text = graphics::Text::new(ctx, "Beyonce Brawls", &font)?;
         let thing_image = graphics::Image::new(ctx, "/thing.png").unwrap();
 
+        let mut smashables = vec![];
+        smashables.push(Smashable::new());
+        smashables.push(Smashable::new());
+        smashables.push(Smashable::new());
+
         let s = MainState {
             player: Player::new(ctx),
             text: text,
-            smashables: vec![],
+            smashables: smashables,
             t_x: 330.0,
             t_y: 300.0,
             t_image: thing_image
         };
         Ok(s)
-    }
-
-    fn generateSmashables(&mut self) -> bool {
-        let mut rng = rand::thread_rng();
-        //let speed = rng.gen::<f64>() + 1.0;
-        //let ltr = rng.gen();
-
-        self.smashables.push(Smashable::new());
-        true
     }
 
     pub fn collision(&mut self) {
@@ -170,7 +166,10 @@ impl event::EventHandler for MainState {
         graphics::clear(ctx);
 
         graphics::draw(ctx, &self.text, Point { x: self.text.width() as f32, y: self.text.height() as f32 }, 0.0)?;
-        graphics::draw(ctx, &self.t_image, Point { x: self.t_x, y: self.t_y }, 0.0)?;
+
+        for s in self.smashables.iter() {
+            graphics::draw(ctx, &self.t_image, Point { x: s.x, y: s.y }, 0.0)?;
+        }
 
         self.player.draw(ctx);
 
