@@ -226,7 +226,7 @@ impl event::EventHandler for MainState {
 
     if self.player.penalty > 0.0 {
       let penalty_txt = graphics::Text::new(ctx, "X", &self.font).unwrap();
-      graphics::draw(ctx, &penalty_txt, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0);
+      graphics::draw(ctx, &penalty_txt, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
     }
 
     if self.player.holding >= 1.0 && self.player.holding < 4.0 {
