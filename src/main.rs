@@ -8,7 +8,8 @@ use ggez::event;
 use ggez::event::*;
 use ggez::{GameResult, Context};
 use ggez::graphics;
-use ggez::graphics::{Color, DrawMode, Point};
+use ggez::graphics::{Point};
+use ggez::timer;
 use std::time::Duration;
 
 enum SmashableType {
@@ -87,7 +88,7 @@ struct Player {
 impl Player {
     fn new(ctx: &mut Context) -> Player {
         Player {
-            x: 190.0,
+            x: 195.0,
             y: 0.0,
             w: 64.0,
             h: 64.0,
@@ -144,9 +145,11 @@ impl Player {
 
 struct MainState {
     player: Player,
+    font: graphics::Font,
     text: graphics::Text,
     smashables: Vec<Smashable>,
-    score: u32
+    score: u32,
+    time: u32
 }
 
 impl MainState {
@@ -162,9 +165,11 @@ impl MainState {
 
         let s = MainState {
             player: Player::new(ctx),
+            font: font,
             text: text,
             smashables: smashables,
-            score: 0
+            score: 0,
+            time: 0
         };
         Ok(s)
     }
@@ -189,6 +194,7 @@ impl MainState {
 
 impl event::EventHandler for MainState {
     fn update(&mut self, _ctx: &mut Context, _dt: Duration) -> GameResult<()> {
+        self.time = (timer::duration_to_f64(timer::get_time_since_start(_ctx)) * 1000.0) as u32 / 1000;
         self.player.update();
         self.collision();
         Ok(())
@@ -198,7 +204,12 @@ impl event::EventHandler for MainState {
         graphics::clear(ctx);
 
         graphics::draw(ctx, &self.text, Point { x: 200.0, y: self.text.height() as f32 }, 0.0)?;
-        //graphics::draw(ctx, );
+
+        let time = graphics::Text::new(ctx, &self.time.to_string(), &self.font).unwrap();
+        graphics::draw(ctx, &time, Point { x: 350.0, y: 570.0 }, 0.0);
+
+        let score = graphics::Text::new(ctx, &self.score.to_string(), &self.font).unwrap();
+        graphics::draw(ctx, &score, Point { x: 30.0, y: 570.0 }, 0.0)?;
 
         for s in self.smashables.iter_mut() {
             s.draw(ctx);
