@@ -80,7 +80,8 @@ struct Player {
   h_y: f32,
   h_w: f32,
   h_h: f32,
-  holding: f32
+  holding: f32,
+  penalty: f32
 }
 
 impl Player {
@@ -97,11 +98,18 @@ impl Player {
       h_y: 195.0 + (64.0 / 2.0),
       h_w: 128.0,
       h_h: 32.0,
-      holding: 0.0
+      holding: 0.0,
+      penalty: 0.0
     }
   }
 
   pub fn update(&mut self) {
+    if self.penalty > 0.0 {
+      self.penalty += 0.1;
+      if self.penalty > 7.0 { // magic
+        self.penalty = 0.0;
+      }
+    }
     if self.holding == 0.0 {
       self.y = self.y % 600.0 + 2.0; // magic
       self.h_y = self.y + (64.0 / 2.0);
@@ -123,19 +131,18 @@ impl Player {
   }
 
   pub fn hold(&mut self) {
-    if self.holding > 0.0 {
-      // count time
-      self.holding += 0.1;
-      println!("Holding {}", self.holding);
+    if self.penalty == 0.0 {
+      if self.holding > 0.0 {
+        self.holding += 0.15;
 
-      if self.holding > 8.0 { // magic number
-        println!("Holding too long, resetting");
-        // some sort of punishing sleep?
-        // otherwise pressing event fires right away again
-        self.unhold();
+        if self.holding > 8.0 { // magic number
+          println!("Holding too long, resetting");
+          self.penalty = 0.1;
+          self.unhold();
+        }
+      } else {
+        self.holding = 0.1;
       }
-    } else {
-      self.holding = 0.1;
     }
   }
 
@@ -149,7 +156,8 @@ impl Player {
 struct MainState {
   player: Player,
   font: graphics::Font,
-  text: graphics::Text,
+  title: graphics::Text,
+  holdup: graphics::Text,
   smashables: Vec<Smashable>,
   score: u32,
   time: u32
@@ -158,18 +166,20 @@ struct MainState {
 impl MainState {
   fn new(ctx: &mut Context) -> GameResult<MainState> {
     let font = graphics::Font::new(ctx, "/leaguespartan-bold.ttf", 20)?;
-    let text = graphics::Text::new(ctx, "Beyonce Brawls", &font)?;
+    let title = graphics::Text::new(ctx, "Beyonce Brawls", &font)?;
+    let holdup = graphics::Text::new(ctx, "HOLD UP!", &font)?;
 
     let mut smashables = vec![];
 
-    for x in 0..20 {
+    for x in 0..15 {
       smashables.push(Smashable::new(ctx));
     }
 
     let s = MainState {
       player: Player::new(ctx),
       font: font,
-      text: text,
+      title: title,
+      holdup: holdup,
       smashables: smashables,
       score: 0,
       time: 0
@@ -187,8 +197,7 @@ impl MainState {
             self.player.h_y < s.y + 64.0 &&
             self.player.h_y + self.player.h_h > s.y {
               s.active = false;
-              self.score += 1;
-              println!("HIT")
+              self.score += 1; // magic
             }
         }
       }
@@ -207,7 +216,7 @@ impl event::EventHandler for MainState {
   fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
     graphics::clear(ctx);
 
-    graphics::draw(ctx, &self.text, Point { x: 200.0, y: self.text.height() as f32 }, 0.0)?;
+    graphics::draw(ctx, &self.title, Point { x: 200.0, y: self.title.height() as f32 }, 0.0)?;
 
     let time = graphics::Text::new(ctx, &self.time.to_string(), &self.font).unwrap();
     graphics::draw(ctx, &time, Point { x: 360.0, y: 570.0 }, 0.0);
@@ -215,27 +224,31 @@ impl event::EventHandler for MainState {
     let score = graphics::Text::new(ctx, &self.score.to_string(), &self.font).unwrap();
     graphics::draw(ctx, &score, Point { x: 40.0, y: 570.0 }, 0.0)?;
 
+    if self.player.penalty > 0.0 {
+      let penalty_txt = graphics::Text::new(ctx, "X", &self.font).unwrap();
+      graphics::draw(ctx, &penalty_txt, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0);
+    }
+
+    if self.player.holding >= 1.0 && self.player.holding < 4.0 {
+      let holdhelp = self.player.holding as u32;
+      let holdtime = graphics::Text::new(ctx, &holdhelp.to_string(), &self.font).unwrap();
+      graphics::draw(ctx, &holdtime, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0);
+    }
+    if self.player.holding >= 4.0 {
+      graphics::draw(ctx, &self.holdup, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
+    }
+
     for s in self.smashables.iter_mut() {
       s.draw(ctx);
     }
 
     self.player.draw(ctx);
 
-    if self.player.holding > 4.0 {
-      graphics::draw(ctx, &self.text, Point { x: 100.0,  y: 300.0}, 0.0)?;
-    }
     graphics::present(ctx);
     Ok(())
   }
 
   fn key_down_event(&mut self, keycode: Keycode, keymod: Mod, repeat: bool) {
-    /*        println!(
-    "Key pressed: {:?}, modifier {:?}, repeat: {}",
-    keycode,
-    keymod,
-    repeat
-  );
-     */
     match keycode {
       Keycode::Space => {
         self.player.hold();
@@ -244,13 +257,6 @@ impl event::EventHandler for MainState {
     }
   }
   fn key_up_event(&mut self, keycode: Keycode, keymod: Mod, repeat: bool) {
-    /*        println!(
-    "Key released: {:?}, modifier {:?}, repeat: {}",
-    keycode,
-    keymod,
-    repeat
-  );
-     */
     match keycode {
       Keycode::Space => {
         self.player.unhold();
