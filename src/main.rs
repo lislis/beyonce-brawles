@@ -166,7 +166,7 @@ struct MainState {
 impl MainState {
   fn new(ctx: &mut Context) -> GameResult<MainState> {
     let font = graphics::Font::new(ctx, "/leaguespartan-bold.ttf", 20)?;
-    let title = graphics::Text::new(ctx, "Beyonce Brawls", &font)?;
+    let title = graphics::Text::new(ctx, "Beyoncé Brawles", &font)?;
     let holdup = graphics::Text::new(ctx, "HOLD UP!", &font)?;
 
     let mut smashables = vec![];
@@ -219,7 +219,7 @@ impl event::EventHandler for MainState {
     graphics::draw(ctx, &self.title, Point { x: 200.0, y: self.title.height() as f32 }, 0.0)?;
 
     let time = graphics::Text::new(ctx, &self.time.to_string(), &self.font).unwrap();
-    graphics::draw(ctx, &time, Point { x: 360.0, y: 570.0 }, 0.0);
+    graphics::draw(ctx, &time, Point { x: 360.0, y: 570.0 }, 0.0)?;
 
     let score = graphics::Text::new(ctx, &self.score.to_string(), &self.font).unwrap();
     graphics::draw(ctx, &score, Point { x: 40.0, y: 570.0 }, 0.0)?;
@@ -232,7 +232,7 @@ impl event::EventHandler for MainState {
     if self.player.holding >= 1.0 && self.player.holding < 4.0 {
       let holdhelp = self.player.holding as u32;
       let holdtime = graphics::Text::new(ctx, &holdhelp.to_string(), &self.font).unwrap();
-      graphics::draw(ctx, &holdtime, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0);
+      graphics::draw(ctx, &holdtime, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
     }
     if self.player.holding >= 4.0 {
       graphics::draw(ctx, &self.holdup, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
@@ -268,7 +268,7 @@ impl event::EventHandler for MainState {
 
 pub fn main() {
   let mut c = conf::Conf::new();
-  c.window_title = "Beyonce Brawles!".to_string();
+  c.window_title = "Beyoncé Brawles!".to_string();
   c.window_width = 400;
   c.window_height = 600;
   c.window_icon = "/b1.png".to_string();
