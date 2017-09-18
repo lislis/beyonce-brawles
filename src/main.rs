@@ -25,7 +25,7 @@ struct Smashable {
 impl Smashable {
   fn new(ctx: &mut Context) -> Smashable {
     let mut rng = rand::thread_rng();
-    let y = rng.gen::<f32>() * 450.0 + 150.0; // magic number
+    let y = rng.gen::<f32>() * 550.0 + 100.0; // magic number
     let x:f32;
     let ltr = rng.gen();
     match ltr {
@@ -111,7 +111,7 @@ impl Player {
       }
     }
     if self.holding == 0.0 {
-      self.y = self.y % 600.0 + 2.0; // magic
+      self.y = self.y % 700.0 + 2.0; // magic
       self.h_y = self.y + (64.0 / 2.0);
     }
   }
@@ -159,7 +159,8 @@ struct MainState {
   holdup: graphics::Text,
   smashables: Vec<Smashable>,
   score: u32,
-  time: u32
+  time: u32,
+  state: u32
 }
 
 impl MainState {
@@ -170,7 +171,7 @@ impl MainState {
 
     let mut smashables = vec![];
 
-    for x in 0..15 {
+    for x in 0..20 {
       smashables.push(Smashable::new(ctx));
     }
 
@@ -181,7 +182,8 @@ impl MainState {
       holdup: holdup,
       smashables: smashables,
       score: 0,
-      time: 0
+      time: 0,
+      state: 0
     };
     Ok(s)
   }
@@ -202,46 +204,71 @@ impl MainState {
       }
     }
   }
+
+  pub fn respawn(&mut self, ctx: &mut Context) {
+    self.smashables = vec![];
+    for x in 0..20 {
+      self.smashables.push(Smashable::new(ctx));
+    }
+  }
 }
 
 impl event::EventHandler for MainState {
   fn update(&mut self, _ctx: &mut Context, _dt: Duration) -> GameResult<()> {
-    self.time = (timer::duration_to_f64(timer::get_time_since_start(_ctx)) * 1000.0) as u32 / 1000;
-    self.player.update();
+    if self.state < 3 {
+      self.player.update();
+      self.time = (timer::duration_to_f64(timer::get_time_since_start(_ctx)) * 1000.0) as u32 / 1000;
+    }
+
+    if self.player.y == 698.0 { // magic
+      self.state += 1;
+      self.respawn(_ctx);
+    }
     Ok(())
   }
 
   fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
     graphics::clear(ctx);
 
-    graphics::draw(ctx, &self.title, Point { x: 200.0, y: self.title.height() as f32 }, 0.0)?;
-
-    let time = graphics::Text::new(ctx, &self.time.to_string(), &self.font).unwrap();
-    graphics::draw(ctx, &time, Point { x: 360.0, y: 570.0 }, 0.0)?;
-
-    let score = graphics::Text::new(ctx, &self.score.to_string(), &self.font).unwrap();
-    graphics::draw(ctx, &score, Point { x: 40.0, y: 570.0 }, 0.0)?;
-
-    if self.player.penalty > 0.0 {
-      let penalty_txt = graphics::Text::new(ctx, "X", &self.font).unwrap();
-      graphics::draw(ctx, &penalty_txt, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
+    if self.state == 0 || self.state > 3 {
+      graphics::draw(ctx, &self.title, Point { x: 200.0, y: self.title.height() as f32 }, 0.0)?;
     }
 
-    for s in self.smashables.iter_mut() {
-      s.draw(ctx);
+    if self.state < 3 {
+      let time = graphics::Text::new(ctx, &self.time.to_string(), &self.font)?;
+      graphics::draw(ctx, &time, Point { x: 360.0, y: 670.0 }, 0.0)?;
+
+      let score = graphics::Text::new(ctx, &self.score.to_string(), &self.font)?;
+      graphics::draw(ctx, &score, Point { x: 40.0, y: 670.0 }, 0.0)?;
+
+      if self.player.penalty > 0.0 {
+        let penalty_txt = graphics::Text::new(ctx, "X", &self.font).unwrap();
+        graphics::draw(ctx, &penalty_txt, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
+      }
+
+      for s in self.smashables.iter_mut() {
+        s.draw(ctx);
+      }
+
+      // put this in player.draw() ?
+      if self.player.holding >= 1.0 && self.player.holding < 4.0 {
+        let holdhelp = self.player.holding as u32;
+        let holdtime = graphics::Text::new(ctx, &holdhelp.to_string(), &self.font).unwrap();
+        graphics::draw(ctx, &holdtime, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
+      }
+      if self.player.holding >= 4.0 {
+        graphics::draw(ctx, &self.holdup, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
+      }
+
+      self.player.draw(ctx);
     }
 
-    // put this in player.draw() ?
-    if self.player.holding >= 1.0 && self.player.holding < 4.0 {
-      let holdhelp = self.player.holding as u32;
-      let holdtime = graphics::Text::new(ctx, &holdhelp.to_string(), &self.font).unwrap();
-      graphics::draw(ctx, &holdtime, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
+    if self.state > 3 {
+      graphics::draw(ctx, &self.holdup, Point { x: 200.0, y: 200.0 }, 0.0)?;
+      let finalscore = self.score * 100 / (self.time + 1);
+      let scorestring = graphics::Text::new(ctx, &finalscore.to_string(), &self.font)?;
+      graphics::draw(ctx, &scorestring, Point { x: 200.0, y: 250.0}, 0.0)?;
     }
-    if self.player.holding >= 4.0 {
-      graphics::draw(ctx, &self.holdup, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
-    }
-
-    self.player.draw(ctx);
 
     graphics::present(ctx);
     Ok(())
@@ -268,9 +295,9 @@ impl event::EventHandler for MainState {
 
 pub fn main() {
   let mut c = conf::Conf::new();
-  c.window_title = "Beyoncé Brawles!".to_string();
+  c.window_title = "Beyoncé Brawles".to_string();
   c.window_width = 400;
-  c.window_height = 600;
+  c.window_height = 700;
   c.window_icon = "/b1.png".to_string();
 
   let ctx = &mut Context::load_from_conf("beyonce_brawles", "ggez", c).unwrap();
