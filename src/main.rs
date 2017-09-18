@@ -25,7 +25,7 @@ struct Smashable {
 impl Smashable {
   fn new(ctx: &mut Context) -> Smashable {
     let mut rng = rand::thread_rng();
-    let y = rng.gen::<f32>() * 600.0 + 150.0; // magic number
+    let y = rng.gen::<f32>() * 450.0 + 150.0; // magic number
     let x:f32;
     let ltr = rng.gen();
     match ltr {
@@ -106,7 +106,7 @@ impl Player {
   pub fn update(&mut self) {
     if self.penalty > 0.0 {
       self.penalty += 0.1;
-      if self.penalty > 7.0 { // magic
+      if self.penalty > 8.0 { // magic
         self.penalty = 0.0;
       }
     }
@@ -135,8 +135,7 @@ impl Player {
       if self.holding > 0.0 {
         self.holding += 0.15;
 
-        if self.holding > 8.0 { // magic number
-          println!("Holding too long, resetting");
+        if self.holding > 6.0 { // magic number
           self.penalty = 0.1;
           self.unhold();
         }
@@ -209,7 +208,6 @@ impl event::EventHandler for MainState {
   fn update(&mut self, _ctx: &mut Context, _dt: Duration) -> GameResult<()> {
     self.time = (timer::duration_to_f64(timer::get_time_since_start(_ctx)) * 1000.0) as u32 / 1000;
     self.player.update();
-    self.collision();
     Ok(())
   }
 
@@ -229,6 +227,11 @@ impl event::EventHandler for MainState {
       graphics::draw(ctx, &penalty_txt, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
     }
 
+    for s in self.smashables.iter_mut() {
+      s.draw(ctx);
+    }
+
+    // put this in player.draw() ?
     if self.player.holding >= 1.0 && self.player.holding < 4.0 {
       let holdhelp = self.player.holding as u32;
       let holdtime = graphics::Text::new(ctx, &holdhelp.to_string(), &self.font).unwrap();
@@ -236,10 +239,6 @@ impl event::EventHandler for MainState {
     }
     if self.player.holding >= 4.0 {
       graphics::draw(ctx, &self.holdup, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
-    }
-
-    for s in self.smashables.iter_mut() {
-      s.draw(ctx);
     }
 
     self.player.draw(ctx);
@@ -259,6 +258,7 @@ impl event::EventHandler for MainState {
   fn key_up_event(&mut self, keycode: Keycode, keymod: Mod, repeat: bool) {
     match keycode {
       Keycode::Space => {
+        self.collision();
         self.player.unhold();
       }
       _ => {}
