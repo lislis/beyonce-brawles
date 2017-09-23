@@ -34,9 +34,9 @@ impl Smashable {
     }
     let t = rand::thread_rng().gen_range(1, 4);
 
-    let car = graphics::Image::new(ctx, "/car.png").unwrap();
-    let cctv = graphics::Image::new(ctx, "/cctv.png").unwrap();
-    let hydrant = graphics::Image::new(ctx, "/hydrant.png").unwrap();
+    let car = graphics::Image::new(ctx, "/car-sprite.png").unwrap();
+    let cctv = graphics::Image::new(ctx, "/cctv-sprite.png").unwrap();
+    let hydrant = graphics::Image::new(ctx, "/hydrant-sprite.png").unwrap();
 
     Smashable {
       x: x,
@@ -75,6 +75,7 @@ struct Player {
   h: f32,
   sprite1: graphics::Image,
   sprite2: graphics::Image,
+  sprite3: graphics::Image,
   hitarea: graphics::Image,
   h_x: f32,
   h_y: f32,
@@ -91,9 +92,10 @@ impl Player {
       y: 20.0,
       w: 64.0,
       h: 64.0,
-      sprite1: graphics::Image::new(ctx, "/b1.png").unwrap(),
-      sprite2: graphics::Image::new(ctx, "/b2.png").unwrap(),
-      hitarea: graphics::Image::new(ctx, "/dangerzone.png").unwrap(),
+      sprite1: graphics::Image::new(ctx, "/beyonce.png").unwrap(),
+      sprite2: graphics::Image::new(ctx, "/beyonce-bat.png").unwrap(),
+      sprite3: graphics::Image::new(ctx, "/beyonce-swing.png").unwrap(),
+      hitarea: graphics::Image::new(ctx, "/swing.png").unwrap(),
       h_x: 195.0,
       h_y: 195.0 + (64.0 / 2.0),
       h_w: 128.0,
@@ -121,7 +123,7 @@ impl Player {
 
     if self.holding > 4.0 { // magic number
       let dest_hitarea = graphics::Point::new(self.h_x, self.h_y);
-      graphics::draw(ctx, &self.sprite2, dest_point, 0.0);
+      graphics::draw(ctx, &self.sprite3, dest_point, 0.0);
       graphics::draw(ctx, &self.hitarea, dest_hitarea, 0.0);
     } else if self.holding > 0.0 {
       graphics::draw(ctx, &self.sprite2, dest_point, 0.0);
