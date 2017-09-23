@@ -71,8 +71,6 @@ impl Smashable {
 struct Player {
   x: f32,
   y: f32,
-  w: f32,
-  h: f32,
   sprite1: graphics::Image,
   sprite2: graphics::Image,
   sprite3: graphics::Image,
@@ -90,8 +88,6 @@ impl Player {
     Player {
       x: 195.0,
       y: 20.0,
-      w: 64.0,
-      h: 64.0,
       sprite1: graphics::Image::new(ctx, "/beyonce.png").unwrap(),
       sprite2: graphics::Image::new(ctx, "/beyonce-bat.png").unwrap(),
       sprite3: graphics::Image::new(ctx, "/beyonce-swing.png").unwrap(),
@@ -153,12 +149,12 @@ impl Player {
   }
 }
 
-
 struct MainState {
   player: Player,
   font: graphics::Font,
   title: graphics::Text,
   holdup: graphics::Text,
+  street: graphics::Image,
   smashables: Vec<Smashable>,
   score: u32,
   time: u32,
@@ -170,6 +166,7 @@ impl MainState {
     let font = graphics::Font::new(ctx, "/leaguespartan-bold.ttf", 20)?;
     let title = graphics::Text::new(ctx, "Beyoncé Brawles", &font)?;
     let holdup = graphics::Text::new(ctx, "HOLD UP!", &font)?;
+    let street = graphics::Image::new(ctx, "/street.png").unwrap();
 
     let mut smashables = vec![];
 
@@ -182,6 +179,7 @@ impl MainState {
       font: font,
       title: title,
       holdup: holdup,
+      street: street,
       smashables: smashables,
       score: 0,
       time: 0,
@@ -231,6 +229,7 @@ impl event::EventHandler for MainState {
 
   fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
     graphics::clear(ctx);
+    graphics::draw(ctx, &self.street, Point { x: self.street.width() as f32 / 2.0, y: self.street.height() as f32 / 2.0 }, 0.0);
 
     if self.state == 0 || self.state > 3 {
       graphics::draw(ctx, &self.title, Point { x: 200.0, y: self.title.height() as f32 }, 0.0)?;
@@ -252,7 +251,6 @@ impl event::EventHandler for MainState {
         s.draw(ctx);
       }
 
-      // put this in player.draw() ?
       if self.player.holding >= 1.0 && self.player.holding < 4.0 {
         let holdhelp = self.player.holding as u32;
         let holdtime = graphics::Text::new(ctx, &holdhelp.to_string(), &self.font).unwrap();
@@ -275,7 +273,6 @@ impl event::EventHandler for MainState {
     graphics::present(ctx);
     Ok(())
   }
-
   fn key_down_event(&mut self, keycode: Keycode, keymod: Mod, repeat: bool) {
     match keycode {
       Keycode::Space => {
@@ -300,7 +297,7 @@ pub fn main() {
   c.window_title = "Beyoncé Brawles".to_string();
   c.window_width = 400;
   c.window_height = 700;
-  c.window_icon = "/b1.png".to_string();
+  c.window_icon = "/beyonce-swing.png".to_string();
 
   let ctx = &mut Context::load_from_conf("beyonce_brawles", "ggez", c).unwrap();
   let state = &mut MainState::new(ctx).unwrap();
