@@ -184,7 +184,7 @@ impl MainState {
     let font = graphics::Font::new(ctx, "/leaguespartan-bold.ttf", 20)?;
     let title = graphics::Text::new(ctx, "Beyoncé Brawles", &font)?;
     let holdup = graphics::Text::new(ctx, "HOLD UP!", &font)?;
-    let street = graphics::Image::new(ctx, "/street.png").unwrap();
+    let street = graphics::Image::new(ctx, "/street.png")?;
 
     let mut smashables = vec![];
 
@@ -290,7 +290,7 @@ impl event::EventHandler for MainState {
     graphics::present(ctx);
     Ok(())
   }
-  fn key_down_event(&mut self, keycode: Keycode, keymod: Mod, repeat: bool) {
+  fn key_down_event(&mut self, keycode: Keycode, _: Mod, _: bool) {
     match keycode {
       Keycode::Space => {
         self.player.hold();
@@ -298,7 +298,7 @@ impl event::EventHandler for MainState {
       _ => {}
     }
   }
-  fn key_up_event(&mut self, keycode: Keycode, keymod: Mod, repeat: bool) {
+  fn key_up_event(&mut self, keycode: Keycode, _: Mod, _: bool) {
     match keycode {
       Keycode::Space => {
         self.collision();
