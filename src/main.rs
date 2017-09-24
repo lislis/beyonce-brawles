@@ -22,10 +22,13 @@ use std::time::Duration;
 // player x
 // hitarea
 // player walking speed
+// player holding speed
 // penalty time
 // hold up time min
 // hold up time max
 // player warp y
+// player warp state max
+// player warp state intermediate
 
 struct Smashable {
   x: f32,
@@ -149,7 +152,7 @@ impl Player {
   pub fn hold(&mut self) {
     if self.penalty == 0.0 {
       if self.holding > 0.0 {
-        self.holding += 0.15;
+        self.holding += 0.3; // magic
 
         if self.holding > 6.0 { // magic number
           self.penalty = 0.1;
@@ -161,9 +164,8 @@ impl Player {
     }
   }
 
-  pub fn unhold(&mut self) -> bool {
+  pub fn unhold(&mut self) {
     self.holding = 0.0;
-    true
   }
 }
 
@@ -181,10 +183,10 @@ struct MainState {
 
 impl MainState {
   fn new(ctx: &mut Context) -> GameResult<MainState> {
-    let font = graphics::Font::new(ctx, "/leaguespartan-bold.ttf", 20)?;
+    let font = graphics::Font::new(ctx, "/leaguespartan-bold.ttf", 30)?;
     let title = graphics::Text::new(ctx, "Beyoncé Brawles", &font)?;
     let holdup = graphics::Text::new(ctx, "HOLD UP!", &font)?;
-    let street = graphics::Image::new(ctx, "/street.png")?;
+    let street = graphics::Image::new(ctx, "/street-2.png")?;
 
     let mut smashables = vec![];
 
@@ -248,11 +250,11 @@ impl event::EventHandler for MainState {
     graphics::clear(ctx);
     graphics::draw(ctx, &self.street, Point { x: self.street.width() as f32 / 2.0, y: self.street.height() as f32 / 2.0 }, 0.0)?;
 
-    if self.state == 0 || self.state > 3 {
+    if self.state == 0 || self.state > 3 { // magic
       graphics::draw(ctx, &self.title, Point { x: 200.0, y: self.title.height() as f32 }, 0.0)?;
     }
 
-    if self.state < 3 {
+    if self.state < 3 { // magic
       let time = graphics::Text::new(ctx, &self.time.to_string(), &self.font)?;
       graphics::draw(ctx, &time, Point { x: 360.0, y: 670.0 }, 0.0)?;
 
@@ -273,7 +275,7 @@ impl event::EventHandler for MainState {
         let holdtime = graphics::Text::new(ctx, &holdhelp.to_string(), &self.font).unwrap();
         graphics::draw(ctx, &holdtime, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
       }
-      if self.player.holding >= 4.0 {
+      if self.player.holding >= 4.0 { // magic
         graphics::draw(ctx, &self.holdup, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
       }
 
