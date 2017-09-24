@@ -12,6 +12,21 @@ use ggez::graphics::{Point};
 use ggez::timer;
 use std::time::Duration;
 
+// smashable x1
+// smashable x2
+// window w
+// window h
+// smashable spawn room
+// smashable amount
+// smashable collision area
+// player x
+// hitarea
+// player walking speed
+// penalty time
+// hold up time min
+// hold up time max
+// player warp y
+
 struct Smashable {
   x: f32,
   y: f32,
@@ -49,22 +64,23 @@ impl Smashable {
     }
   }
 
-  pub fn draw(&mut self, ctx: &mut Context) {
+  pub fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
     let point = graphics::Point::new(self.x, self.y);
 
     if self.active {
       match self.t {
         2 => {
-          graphics::draw(ctx, &self.car, point, 0.0);
+          graphics::draw(ctx, &self.car, point, 0.0)?;
         }
         3 => {
-          graphics::draw(ctx, &self.cctv, point, 0.0);
+          graphics::draw(ctx, &self.cctv, point, 0.0)?;
         }
         _ => {
-          graphics::draw(ctx, &self.hydrant, point, 0.0);
+          graphics::draw(ctx, &self.hydrant, point, 0.0)?;
         }
       }
     }
+    Ok(())
   }
 }
 
@@ -114,18 +130,20 @@ impl Player {
     }
   }
 
-  pub fn draw(&mut self, ctx: &mut Context) {
+  pub fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
     let dest_point = graphics::Point::new(self.x, self.y);
 
     if self.holding > 4.0 { // magic number
       let dest_hitarea = graphics::Point::new(self.h_x, self.h_y);
-      graphics::draw(ctx, &self.sprite3, dest_point, 0.0);
-      graphics::draw(ctx, &self.hitarea, dest_hitarea, 0.0);
+      graphics::draw(ctx, &self.sprite3, dest_point, 0.0)?;
+      graphics::draw(ctx, &self.hitarea, dest_hitarea, 0.0)?;
     } else if self.holding > 0.0 {
-      graphics::draw(ctx, &self.sprite2, dest_point, 0.0);
+      graphics::draw(ctx, &self.sprite2, dest_point, 0.0)?;
     } else {
-      graphics::draw(ctx, &self.sprite1, dest_point, 0.0);
+      graphics::draw(ctx, &self.sprite1, dest_point, 0.0)?;
     }
+
+    Ok(())
   }
 
   pub fn hold(&mut self) {
@@ -170,7 +188,7 @@ impl MainState {
 
     let mut smashables = vec![];
 
-    for x in 0..20 {
+    for _ in 0..13 { // magic
       smashables.push(Smashable::new(ctx));
     }
 
@@ -192,10 +210,9 @@ impl MainState {
     if self.player.holding > 4.0 { //magic number
       for s in self.smashables.iter_mut() {
         if s.active {
-          // we collide hitarea and not player
-          if self.player.h_x < s.x + 64.0 &&
+          if self.player.h_x < s.x + 64.0 && // magic
             self.player.h_x + self.player.h_w > s.x &&
-            self.player.h_y < s.y + 64.0 &&
+            self.player.h_y < s.y + 64.0 && //magic
             self.player.h_y + self.player.h_h > s.y {
               s.active = false;
               self.score += 1; // magic
@@ -207,7 +224,7 @@ impl MainState {
 
   pub fn respawn(&mut self, ctx: &mut Context) {
     self.smashables = vec![];
-    for x in 0..20 {
+    for _ in 0..13 { // magic
       self.smashables.push(Smashable::new(ctx));
     }
   }
@@ -229,7 +246,7 @@ impl event::EventHandler for MainState {
 
   fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
     graphics::clear(ctx);
-    graphics::draw(ctx, &self.street, Point { x: self.street.width() as f32 / 2.0, y: self.street.height() as f32 / 2.0 }, 0.0);
+    graphics::draw(ctx, &self.street, Point { x: self.street.width() as f32 / 2.0, y: self.street.height() as f32 / 2.0 }, 0.0)?;
 
     if self.state == 0 || self.state > 3 {
       graphics::draw(ctx, &self.title, Point { x: 200.0, y: self.title.height() as f32 }, 0.0)?;
@@ -248,7 +265,7 @@ impl event::EventHandler for MainState {
       }
 
       for s in self.smashables.iter_mut() {
-        s.draw(ctx);
+        s.draw(ctx)?;
       }
 
       if self.player.holding >= 1.0 && self.player.holding < 4.0 {
@@ -260,7 +277,7 @@ impl event::EventHandler for MainState {
         graphics::draw(ctx, &self.holdup, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
       }
 
-      self.player.draw(ctx);
+      self.player.draw(ctx)?;
     }
 
     if self.state > 3 {
