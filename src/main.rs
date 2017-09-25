@@ -12,23 +12,29 @@ use ggez::graphics::{Point};
 use ggez::timer;
 use std::time::Duration;
 
-// smashable x1
-// smashable x2
-// window w
-// window h
-// smashable spawn room
-// smashable amount
-// smashable collision area
-// player x
-// hitarea
-// player walking speed
-// player holding speed
-// penalty time
-// hold up time min
-// hold up time max
-// player warp y
-// player warp state max
-// player warp state intermediate
+const WINDOW_W: u32 = 400;
+const WINDOW_H: u32 = 700;
+
+const SMASHABLE_X_LEFT: f32 = 135.0;
+const SMASHABLE_X_RIGHT: f32 = 255.0;
+const SMASHABLE_SPAWN_FACTOR: f32 = 550.0;
+const SMASHABLES_PER_SCREEN: u32 = 13;
+const SMASHABLE_W: f32 = 64.0;
+
+const PLAYER_X: f32 = 195.0;
+const PLAYER_Y: f32 = 20.0;
+const HITAREA_W: f32 = 128.0;
+const HITAREA_H: f32 = 32.0;
+const PLAYER_WALKING_SPEED: f32 = 2.0;
+const PLAYER_HOLDING_SPEED: f32 = 0.3;
+const PLAYER_PENALTY_TIME: f32 = 8.0;
+const PLAYER_HOLDING_TIME_MIN: f32 = 4.0;
+const PLAYER_HOLDING_TIME_MAX: f32 = 6.0;
+const PLAYER_WARP_Y: f32 = 698.0;
+
+const GAME_STATES_MAX: u32 = 4;
+const GAME_STATE_PLAY: u32 = GAME_STATES_MAX - 1;
+
 
 struct Smashable {
   x: f32,
@@ -43,12 +49,12 @@ struct Smashable {
 impl Smashable {
   fn new(ctx: &mut Context) -> Smashable {
     let mut rng = rand::thread_rng();
-    let y = rng.gen::<f32>() * 550.0 + 100.0; // magic number
+    let y = rng.gen::<f32>() * SMASHABLE_SPAWN_FACTOR + 100.0; // magic number
     let x:f32;
     let ltr = rng.gen();
     match ltr {
-      true => { x = 135.0 } // magic number
-      false => { x = 255.0 } //magic number
+      true => { x = SMASHABLE_X_LEFT }
+      false => { x = SMASHABLE_X_RIGHT }
     }
     let t = rand::thread_rng().gen_range(1, 4);
 
@@ -105,16 +111,16 @@ struct Player {
 impl Player {
   fn new(ctx: &mut Context) -> Player {
     Player {
-      x: 195.0,
-      y: 20.0,
+      x: PLAYER_X,
+      y: PLAYER_Y,
       sprite1: graphics::Image::new(ctx, "/beyonce.png").unwrap(),
       sprite2: graphics::Image::new(ctx, "/beyonce-bat.png").unwrap(),
       sprite3: graphics::Image::new(ctx, "/beyonce-swing.png").unwrap(),
       hitarea: graphics::Image::new(ctx, "/swing.png").unwrap(),
-      h_x: 195.0,
-      h_y: 195.0 + (64.0 / 2.0),
-      h_w: 128.0,
-      h_h: 32.0,
+      h_x: PLAYER_X,
+      h_y: PLAYER_X + HITAREA_H,
+      h_w: HITAREA_W,
+      h_h: HITAREA_H,
       holding: 0.0,
       penalty: 0.0
     }
@@ -123,20 +129,20 @@ impl Player {
   pub fn update(&mut self) {
     if self.penalty > 0.0 {
       self.penalty += 0.1;
-      if self.penalty > 8.0 { // magic
+      if self.penalty > PLAYER_PENALTY_TIME {
         self.penalty = 0.0;
       }
     }
     if self.holding == 0.0 {
-      self.y = self.y % 700.0 + 2.0; // magic
-      self.h_y = self.y + (64.0 / 2.0);
+      self.y = self.y % WINDOW_H as f32 + PLAYER_WALKING_SPEED;
+      self.h_y = self.y + HITAREA_H;
     }
   }
 
   pub fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
     let dest_point = graphics::Point::new(self.x, self.y);
 
-    if self.holding > 4.0 { // magic number
+    if self.holding > PLAYER_HOLDING_TIME_MIN {
       let dest_hitarea = graphics::Point::new(self.h_x, self.h_y);
       graphics::draw(ctx, &self.sprite3, dest_point, 0.0)?;
       graphics::draw(ctx, &self.hitarea, dest_hitarea, 0.0)?;
@@ -152,9 +158,9 @@ impl Player {
   pub fn hold(&mut self) {
     if self.penalty == 0.0 {
       if self.holding > 0.0 {
-        self.holding += 0.3; // magic
+        self.holding += PLAYER_HOLDING_SPEED;
 
-        if self.holding > 6.0 { // magic number
+        if self.holding > PLAYER_HOLDING_TIME_MAX {
           self.penalty = 0.1;
           self.unhold();
         }
@@ -190,7 +196,7 @@ impl MainState {
 
     let mut smashables = vec![];
 
-    for _ in 0..13 { // magic
+    for _ in 0..SMASHABLES_PER_SCREEN {
       smashables.push(Smashable::new(ctx));
     }
 
@@ -209,12 +215,12 @@ impl MainState {
   }
 
   pub fn collision(&mut self) {
-    if self.player.holding > 4.0 { //magic number
+    if self.player.holding > PLAYER_HOLDING_TIME_MIN {
       for s in self.smashables.iter_mut() {
         if s.active {
-          if self.player.h_x < s.x + 64.0 && // magic
+          if self.player.h_x < s.x + SMASHABLE_W &&
             self.player.h_x + self.player.h_w > s.x &&
-            self.player.h_y < s.y + 64.0 && //magic
+            self.player.h_y < s.y + SMASHABLE_W &&
             self.player.h_y + self.player.h_h > s.y {
               s.active = false;
               self.score += 1; // magic
@@ -226,7 +232,7 @@ impl MainState {
 
   pub fn respawn(&mut self, ctx: &mut Context) {
     self.smashables = vec![];
-    for _ in 0..13 { // magic
+    for _ in 0..SMASHABLES_PER_SCREEN {
       self.smashables.push(Smashable::new(ctx));
     }
   }
@@ -239,7 +245,7 @@ impl event::EventHandler for MainState {
       self.time = (timer::duration_to_f64(timer::get_time_since_start(_ctx)) * 1000.0) as u32 / 1000;
     }
 
-    if self.player.y == 698.0 { // magic
+    if self.player.y == PLAYER_WARP_Y {
       self.state += 1;
       self.respawn(_ctx);
     }
@@ -250,11 +256,11 @@ impl event::EventHandler for MainState {
     graphics::clear(ctx);
     graphics::draw(ctx, &self.street, Point { x: self.street.width() as f32 / 2.0, y: self.street.height() as f32 / 2.0 }, 0.0)?;
 
-    if self.state == 0 || self.state > 3 { // magic
+    if self.state == 0 || self.state > GAME_STATE_PLAY {
       graphics::draw(ctx, &self.title, Point { x: 200.0, y: self.title.height() as f32 }, 0.0)?;
     }
 
-    if self.state < 3 { // magic
+    if self.state < GAME_STATE_PLAY {
       let time = graphics::Text::new(ctx, &self.time.to_string(), &self.font)?;
       graphics::draw(ctx, &time, Point { x: 360.0, y: 670.0 }, 0.0)?;
 
@@ -270,19 +276,19 @@ impl event::EventHandler for MainState {
         s.draw(ctx)?;
       }
 
-      if self.player.holding >= 1.0 && self.player.holding < 4.0 {
+      if self.player.holding >= 1.0 && self.player.holding < PLAYER_HOLDING_TIME_MIN {
         let holdhelp = self.player.holding as u32;
         let holdtime = graphics::Text::new(ctx, &holdhelp.to_string(), &self.font).unwrap();
         graphics::draw(ctx, &holdtime, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
       }
-      if self.player.holding >= 4.0 { // magic
+      if self.player.holding >= PLAYER_HOLDING_TIME_MIN {
         graphics::draw(ctx, &self.holdup, Point { x: self.player.x, y: self.player.y - 64.0 }, 0.0)?;
       }
 
       self.player.draw(ctx)?;
     }
 
-    if self.state > 3 {
+    if self.state > GAME_STATE_PLAY {
       graphics::draw(ctx, &self.holdup, Point { x: 200.0, y: 200.0 }, 0.0)?;
       let finalscore = self.score * 100 / (self.time + 1);
       let scorestring = graphics::Text::new(ctx, &finalscore.to_string(), &self.font)?;
@@ -314,8 +320,8 @@ impl event::EventHandler for MainState {
 pub fn main() {
   let mut c = conf::Conf::new();
   c.window_title = "Beyoncé Brawles".to_string();
-  c.window_width = 400;
-  c.window_height = 700;
+  c.window_width = WINDOW_W;
+  c.window_height = WINDOW_H;
   c.window_icon = "/beyonce-swing.png".to_string();
 
   let ctx = &mut Context::load_from_conf("beyonce_brawles", "ggez", c).unwrap();
