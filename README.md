@@ -3,7 +3,7 @@
 A little 2d game inspired by Beyoncé's music video to *Hold Up*
 
 
-[gameplay gif](gameplay.gif)
+![gameplay gif](gameplay.gif)
 
 
 ## Written in Rust with ggez
