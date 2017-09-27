@@ -2,6 +2,10 @@
 
 A little 2d game inspired by Beyoncé's music video to *Hold Up*
 
+
+[gameplay gif](gameplay.gif)
+
+
 ## Written in Rust with ggez
 
 [ggez](http://ggez.rs/) is a 2d game library which is very nice to work with!
@@ -27,3 +31,4 @@ Sounds from
 https://freesound.org/people/Mrguff/sounds/369711/
 https://freesound.org/people/bradwesson/sounds/135936/
 https://freesound.org/people/SamsterBirdies/sounds/363920/b
+160756__cosmicembers__fast-swing-air-woosh.wav

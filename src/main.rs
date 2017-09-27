@@ -106,7 +106,10 @@ struct Player {
     h_w: f32,
     h_h: f32,
     holding: f32,
-    penalty: f32
+    penalty: f32,
+    missed: audio::Source,
+    whoosh: audio::Source
+
 }
 
 impl Player {
@@ -123,7 +126,9 @@ impl Player {
             h_w: HITAREA_W,
             h_h: HITAREA_H,
             holding: 0.0,
-            penalty: 0.0
+            penalty: 0.0,
+            missed: audio::Source::new(ctx, "/363920__samsterbirdies__8-bit-error.wav").unwrap(),
+            whoosh: audio::Source::new(ctx, "/160756__cosmicembers__fast-swing-air-woosh-2.wav").unwrap()
         }
     }
 
@@ -163,6 +168,7 @@ impl Player {
 
                 if self.holding > PLAYER_HOLDING_TIME_MAX {
                     self.penalty = 0.1;
+                    let _ = self.missed.play();
                     self.unhold();
                 }
             } else {
@@ -186,9 +192,7 @@ struct MainState {
     score: u32,
     time: u32,
     state: u32,
-    bat: audio::Source,
-    coin: audio::Source,
-    error: audio::Source
+    bat: audio::Source
 }
 
 impl MainState {
@@ -198,10 +202,8 @@ impl MainState {
         let holdup = graphics::Text::new(ctx, "HOLD UP!", &font)?;
         let street = graphics::Image::new(ctx, "/street-2.png")?;
         let bat = audio::Source::new(ctx, "/369711__mrguff__hit-impact.wav")?;
-        let coin = audio::Source::new(ctx, "/135936__bradwesson__collectcoin.wav")?;
-        let error  = audio::Source::new(ctx, "/363920__samsterbirdies__8-bit-error.wav")?;
 
-            let mut smashables = vec![];
+        let mut smashables = vec![];
 
         for _ in 0..SMASHABLES_PER_SCREEN {
             smashables.push(Smashable::new(ctx));
@@ -217,9 +219,7 @@ impl MainState {
             score: 0,
             time: 0,
             state: 0,
-            bat: bat,
-            coin: coin,
-            error: error
+            bat: bat
         };
         Ok(s)
     }
@@ -233,7 +233,7 @@ impl MainState {
                         self.player.h_y < s.y + SMASHABLE_W &&
                         self.player.h_y + self.player.h_h > s.y {
                             s.active = false;
-                            self.coin.play();
+                            let _ = self.bat.play();
                             self.score += 1; // magic
                         }
                 }
@@ -322,6 +322,10 @@ impl event::EventHandler for MainState {
             Keycode::Space => {
                 self.collision();
                 self.player.unhold();
+                if self.player.holding > PLAYER_HOLDING_TIME_MIN &&
+                    self.player.holding > PLAYER_HOLDING_TIME_MAX {
+                        let _ = self.player.whoosh.play();
+                    }
             }
             _ => {}
         }
