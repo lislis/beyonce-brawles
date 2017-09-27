@@ -7,3 +7,5 @@ authors = ["lislis <mail@lislis.de>"]
 cargo-resource-root = []
 
 [dependencies]
+ggez = "0.3"
+rand = "0.3.14"
