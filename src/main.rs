@@ -6,6 +6,12 @@ use ggez::graphics;
 use ggez::graphics::{Color, DrawMode, Point};
 use std::time::Duration;
 
+
+const WINDOW_W: u32 = 400;
+const WINDOW_H: u32 = 700;
+
+
+
 struct MainState {
     pos_x: f32,
 }
@@ -32,7 +38,11 @@ impl event::EventHandler for MainState {
 }
 
 pub fn main() {
-    let c = conf::Conf::new();
+    let mut c = conf::Conf::new();
+    c.window_title = "Beyoncé Brawles".to_string();
+    c.window_width = WINDOW_W;
+    c.window_height = WINDOW_H;
+
     let ctx = &mut Context::load_from_conf("super_simple", "ggez", c).unwrap();
     let state = &mut MainState::new(ctx).unwrap();
     event::run(ctx, state).unwrap();
