@@ -129,13 +129,21 @@ impl Player {
 }
 
 struct MainState {
-    player: Player
+    player: Player,
+    smashables: Vec<Smashable>
 }
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
+        let mut smashables = vec![];
+
+        for _ in 0..SMASHABLES_PER_SCREEN {
+            smashables.push(Smashable::new(ctx));
+        }
+
         let s = MainState {
-            player: Player::new(ctx)
+            player: Player::new(ctx),
+            smashables: smashables
         };
         Ok(s)
     }
@@ -149,6 +157,9 @@ impl event::EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
+        for s in self.smashables.iter_mut() {
+            s.draw(ctx)?;
+        }
         self.player.draw(ctx)?;
         graphics::present(ctx);
         Ok(())
