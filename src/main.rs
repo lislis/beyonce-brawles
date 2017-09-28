@@ -7,9 +7,7 @@ use ggez::event;
 use ggez::event::*;
 use ggez::{GameResult, Context};
 use ggez::graphics;
-use ggez::graphics::{Color, DrawMode, Point};
 use std::time::Duration;
-
 
 const WINDOW_W: u32 = 400;
 const WINDOW_H: u32 = 700;
