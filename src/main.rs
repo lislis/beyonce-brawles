@@ -1,6 +1,7 @@
 extern crate ggez;
 use ggez::conf;
 use ggez::event;
+use ggez::event::*;
 use ggez::{GameResult, Context};
 use ggez::graphics;
 use ggez::graphics::{Color, DrawMode, Point};
@@ -82,28 +83,31 @@ impl Player {
 }
 
 struct MainState {
-    pos_x: f32,
+    player: Player
 }
 
 impl MainState {
     fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let s = MainState { pos_x: 0.0 };
+        let s = MainState {
+            player: Player::new(ctx)
+        };
         Ok(s)
     }
 }
 
 impl event::EventHandler for MainState {
     fn update(&mut self, _ctx: &mut Context, _dt: Duration) -> GameResult<()> {
-        self.pos_x = self.pos_x % 800.0 + 1.0;
+        self.player.update();
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
-        graphics::circle(ctx, DrawMode::Fill, Point { x: self.pos_x, y: 380.0 }, 100.0, 32)?;
+        self.player.draw(ctx)?;
         graphics::present(ctx);
         Ok(())
     }
+
 }
 
 pub fn main() {
