@@ -2,8 +2,10 @@
 
 A little 2d game inspired by Beyoncé's music video to *Hold Up*
 
+> **ATTENTION** this branch is meant as a step by step intro to the code base.
+> The full game is on the master branch
 
-![gameplay gif](gameplay.gif)
+![gameplay gif](gameplay-cube.gif)
 
 
 ## Written in Rust with ggez
