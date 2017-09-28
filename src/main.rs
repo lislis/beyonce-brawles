@@ -116,6 +116,15 @@ impl event::EventHandler for MainState {
             _ => {}
         }
     }
+
+    fn key_up_event(&mut self, keycode: Keycode, _: Mod, _: bool) {
+        match keycode {
+            Keycode::Space => {
+                self.player.unhold();
+            }
+            _ => {}
+        }
+    }
 }
 
 pub fn main() {
