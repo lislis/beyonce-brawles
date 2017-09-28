@@ -28,7 +28,7 @@ If you want to fix a thing by yourself the same approach applies but with a PR.
 ## CREDITS
 
 Sounds from
-https://freesound.org/people/Mrguff/sounds/369711/
-https://freesound.org/people/bradwesson/sounds/135936/
-https://freesound.org/people/SamsterBirdies/sounds/363920/b
-160756__cosmicembers__fast-swing-air-woosh.wav
+https://freesound.org/people/Mrguff/sounds/369711/  
+https://freesound.org/people/bradwesson/sounds/135936/  
+https://freesound.org/people/SamsterBirdies/sounds/363920/
+http://freesound.org/people/CosmicEmbers/sounds/160756/  
