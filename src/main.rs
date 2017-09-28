@@ -1,4 +1,7 @@
 extern crate ggez;
+extern crate rand;
+
+use rand::Rng;
 use ggez::conf;
 use ggez::event;
 use ggez::event::*;
@@ -19,6 +22,49 @@ const HITAREA_H: f32 = 32.0;
 const PLAYER_HOLDING_SPEED: f32 = 0.3;
 const PLAYER_HOLDING_TIME_MIN: f32 = 4.0;
 const PLAYER_HOLDING_TIME_MAX: f32 = 6.0;
+
+const SMASHABLE_X_LEFT: f32 = 135.0;
+const SMASHABLE_X_RIGHT: f32 = 255.0;
+const SMASHABLE_SPAWN_FACTOR: f32 = 550.0;
+const SMASHABLES_PER_SCREEN: u32 = 13;
+const SMASHABLE_W: f32 = 64.0;
+
+struct Smashable {
+    x: f32,
+    y: f32,
+    active: bool,
+    sprite: graphics::Image
+}
+
+impl Smashable {
+    fn new(ctx: &mut Context) -> Smashable {
+        let mut rng = rand::thread_rng();
+        let y = rng.gen::<f32>() * SMASHABLE_SPAWN_FACTOR + 100.0; // magic number
+        let x:f32;
+        let ltr = rng.gen();
+        match ltr {
+            true => { x = SMASHABLE_X_LEFT }
+            false => { x = SMASHABLE_X_RIGHT }
+        }
+        let sprite = graphics::Image::new(ctx, "/thing.png").unwrap();
+
+        Smashable {
+            x: x,
+            y: y,
+            active: true,
+            sprite: sprite,
+        }
+    }
+
+    pub fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
+        let point = graphics::Point::new(self.x, self.y);
+
+        if self.active {
+            graphics::draw(ctx, &self.sprite, point, 0.0)?;
+        }
+        Ok(())
+    }
+}
 
 
 struct Player {
