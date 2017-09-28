@@ -108,6 +108,14 @@ impl event::EventHandler for MainState {
         Ok(())
     }
 
+    fn key_down_event(&mut self, keycode: Keycode, _: Mod, _: bool) {
+        match keycode {
+            Keycode::Space => {
+                self.player.hold();
+            }
+            _ => {}
+        }
+    }
 }
 
 pub fn main() {
