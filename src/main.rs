@@ -147,6 +147,21 @@ impl MainState {
         };
         Ok(s)
     }
+
+    pub fn collision(&mut self) {
+        if self.player.holding > PLAYER_HOLDING_TIME_MIN {
+            for s in self.smashables.iter_mut() {
+                if s.active {
+                    if self.player.h_x < s.x + SMASHABLE_W &&
+                        self.player.h_x + self.player.h_w > s.x &&
+                        self.player.h_y < s.y + SMASHABLE_W &&
+                        self.player.h_y + self.player.h_h > s.y {
+                            s.active = false;
+                        }
+                }
+            }
+        }
+    }
 }
 
 impl event::EventHandler for MainState {
@@ -177,6 +192,7 @@ impl event::EventHandler for MainState {
     fn key_up_event(&mut self, keycode: Keycode, _: Mod, _: bool) {
         match keycode {
             Keycode::Space => {
+                self.collision();
                 self.player.unhold();
             }
             _ => {}
